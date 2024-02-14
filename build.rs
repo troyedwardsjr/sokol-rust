@@ -48,7 +48,7 @@ fn get_compilation_config(tool: &cc::Tool) -> CompilationConfig {
 
     let build_target = if is_wasm_hack {
         BuildTarget::WasmEmscripten
-    } else if cfg!(target_os = "windows") && is_msvc {
+    } else if cfg!(target_os = "windows") {
         BuildTarget::Windows
     } else if cfg!(target_os = "macos") {
         BuildTarget::Macos
@@ -180,14 +180,16 @@ fn make_sokol() {
                     .flag_if_supported("-Wno-sign-compare")
                     .flag_if_supported("-Wno-unknown-pragmas");
 
-                println!("cargo:rustc-link-lib=static=gdi32");
-                println!("cargo:rustc-link-lib=static=ole32");
-                println!("cargo:rustc-link-lib=static=kernel32");
-                println!("cargo:rustc-link-lib=static=user32");
-
-                if backend == SokolBackend::D3d11 {
-                    println!("cargo:rustc-link-lib=static=d3d11");
-                    println!("cargo:rustc-link-lib=static=dxgi");
+                let target_env = std::env::var("CARGO_CFG_TARGET_ENV").unwrap_or_else(|_| "unknown".to_string());
+                if target_env != "gnu" {
+                    println!("cargo:rustc-link-lib=static=gdi32");
+                    println!("cargo:rustc-link-lib=static=ole32");
+                    println!("cargo:rustc-link-lib=static=kernel32");
+                    println!("cargo:rustc-link-lib=static=user32");
+                    if backend == SokolBackend::D3d11 {
+                        println!("cargo:rustc-link-lib=static=d3d11");
+                        println!("cargo:rustc-link-lib=static=dxgi");
+                    }
                 }
             }
         },
